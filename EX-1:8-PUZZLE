@@ -1,0 +1,67 @@
+from queue import PriorityQueue
+
+goal = [[1,2,3],
+        [4,5,6],
+        [7,8,0]]
+
+class Node:
+    def __init__(self, data, level):
+        self.data = data
+        self.level = level
+
+    def find(self, x):
+        for i in range(3):
+            for j in range(3):
+                if self.data[i][j] == x:
+                    return i, j
+
+    def generate_child(self):
+        x, y = self.find(0)
+        moves = [(x-1,y), (x+1,y), (x,y-1), (x,y+1)]
+        children = []
+
+        for i, j in moves:
+            if 0 <= i < 3 and 0 <= j < 3:
+                temp = [row[:] for row in self.data]
+                temp[x][y], temp[i][j] = temp[i][j], temp[x][y]
+                children.append(Node(temp, self.level + 1))
+
+        return children
+
+def heuristic(state):
+    count = 0
+    for i in range(3):
+        for j in range(3):
+            if state[i][j] != 0 and state[i][j] != goal[i][j]:
+                count += 1
+    return count
+
+def f(node):
+    return node.level + heuristic(node.data)
+
+start = [[5,4,0],
+         [6,1,8],
+         [7,3,2]]
+
+pq = PriorityQueue()
+root = Node(start,0)
+pq.put((f(root), id(root), root))
+
+visited = []
+
+while not pq.empty():
+    current = pq.get()[2]
+
+    for row in current.data:
+        print(row)
+    print()
+
+    if heuristic(current.data) == 0:
+        print("Goal Reached")
+        break
+
+    visited.append(current.data)
+
+    for child in current.generate_child():
+        if child.data not in visited:
+            pq.put((f(child), id(child), child))
